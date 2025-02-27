@@ -1,0 +1,27 @@
+definitions:
+
+  category:
+    properties:
+      name:
+        type: string
+      items:
+        elements:
+          ref: appointment
+
+  appointment:
+    properties:
+      tag:
+        type: string
+      title:
+        type: string
+      date:
+        type: string
+      start:
+        type: string
+      end:
+        type: string
+
+properties:
+  categories:
+    elements:
+      ref: category
