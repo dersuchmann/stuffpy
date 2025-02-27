@@ -1,0 +1,15 @@
+stuff: '0.1.0'
+scope: dersuchmann
+name: tasksets
+
+validate: python3 "$STUFF_REPO_DIR/src/validate.py"
+test: python3 "$STUFF_REPO_DIR/src/test.py"
+
+morphs:
+  yaml:
+    load: python3 "$STUFF_REPO_DIR/src/morph-load-yaml.py"
+    save: python3 "$STUFF_REPO_DIR/src/morph-save-yaml.py"
+
+views:
+  html:
+    load: solara run "$STUFF_REPO_DIR/src/view-load-html.py"
