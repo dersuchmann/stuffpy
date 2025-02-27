@@ -1,0 +1,21 @@
+stuff: '0.1.0'
+scope: suchmann
+name: appointments
+
+generate-typedefs:
+  args: --python-out src/typedefs
+
+validate: python3 "$STUFF_REPO_DIR/src/validate.py"
+test: python3 "$STUFF_REPO_DIR/src/test.py"
+
+morphs:
+  csv:
+    load: python3 "$STUFF_REPO_DIR/src/morph-load-csv.py"
+    save: python3 "$STUFF_REPO_DIR/src/morph-save-csv.py"
+  yaml:
+    load: python3 "$STUFF_REPO_DIR/src/morph-load-yaml.py"
+    save: python3 "$STUFF_REPO_DIR/src/morph-save-yaml.py"
+
+views:
+  html:
+    load: solara run "$STUFF_REPO_DIR/src/view-load-html.py"
