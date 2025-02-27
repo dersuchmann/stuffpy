@@ -1,0 +1,22 @@
+definitions:
+
+  taskset:
+    properties:
+      name: 
+        type: string
+      completed_tasks:
+        elements:
+          ref: task
+      tasks:
+        elements:
+          ref: task
+
+  task:
+    properties:
+      name:
+        type: string
+
+properties:
+  tasksets:
+    elements:
+      ref: taskset
