@@ -1,16 +1,18 @@
-{ pkgs }:
+{ pkgs, inputsFrom }:
 
 let 
   packageOverrides = pkgs.callPackage ./python-packages.nix { };
   python313WithOverrides = pkgs.python313.override { inherit packageOverrides; };
 in 
 pkgs.mkShell {
+  inherit inputsFrom;
+  
   nativeBuildInputs =
     with pkgs; [
       (python313WithOverrides.withPackages (pypkgs: with pypkgs; [
         pyyaml
         jtd
-        #solara # has to be installed separately
+        #solara # is installed separately in .venv
       ]))
     ]
   ;
@@ -20,4 +22,11 @@ pkgs.mkShell {
     pkgs.stdenv.cc.cc.lib
     pkgs.libz
   ];
+
+  shellHook =
+    ''
+      source "$FLAKE_ROOT/.venv/bin/activate"
+      exec "$SHELL"
+    ''
+  ;
 }
