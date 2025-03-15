@@ -2,18 +2,13 @@
 
 let 
   packageOverrides = pkgs.callPackage ./python-packages.nix { };
-  python313WithOverrides = pkgs.python313.override { inherit packageOverrides; };
 in 
 pkgs.mkShell {
   inherit inputsFrom;
   
   nativeBuildInputs =
     with pkgs; [
-      (python313WithOverrides.withPackages (pypkgs: with pypkgs; [
-        pyyaml
-        jtd
-        #solara # is installed separately in .venv
-      ]))
+      python313
     ]
   ;
 
