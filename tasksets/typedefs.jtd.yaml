@@ -1,5 +1,5 @@
 definitions:
-
+  
   taskset:
     properties:
       name: 
@@ -10,7 +10,7 @@ definitions:
       tasks:
         elements:
           ref: task
-
+  
   task:
     properties:
       name:

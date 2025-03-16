@@ -18,7 +18,7 @@ def decode_appointment(yaml_appointment: Dict[str, str]) -> Appointment:
     date: str = yaml_appointment['date']
     start: str = yaml_appointment['start']
     end: str = yaml_appointment['end']
-
+    
     appointment = Appointment(
         t=AppointmentT.SUCHMANN_APPOINTMENTS_APPOINTMENT,
         tag=tag,
@@ -31,11 +31,11 @@ def decode_appointment(yaml_appointment: Dict[str, str]) -> Appointment:
 
 def decode_category(yaml_category: Dict[str, str]):
     name: str = yaml_category['name']
-
+    
     items: List[Appointment] = []
     for yaml_appointment in (yaml_category['items'] or []):
         items.append(decode_appointment(yaml_appointment))
-
+    
     category = Category(
         t=CategoryT.SUCHMANN_APPOINTMENTS_CATEGORY,
         name=name,
@@ -47,7 +47,7 @@ def decode_root(yaml_root: List[Dict[str, str]]):
     categories: List[Category] = []
     for yaml_category in (yaml_root['categories'] or []):
         categories.append(decode_category(yaml_category))
-
+    
     root = Root(
         t=RootT.SUCHMANN_APPOINTMENTS_ROOT,
         categories=categories,

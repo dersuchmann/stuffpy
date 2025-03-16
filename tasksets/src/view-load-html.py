@@ -21,7 +21,7 @@ nonreactive_root: Root = read_json_file(input)
 
 @solara.component
 def Page():
-
+    
     # Reactive variables
     root: solara.Reactive[Root] = solara.use_reactive(nonreactive_root)
     active_taskset_index: solara.Reactive[int | None] = solara.use_reactive(None)
@@ -31,7 +31,7 @@ def Page():
         def closure():
             active_taskset_index.value = i
         return closure
-
+    
     def mark_current_task_as_completed(i: int):
         def closure():
             tasks = [*root.value.tasksets[i].tasks[1:]]
@@ -41,7 +41,7 @@ def Page():
             root.value = Root(t=RootT.SUCHMANN_TASKSETS_ROOT, tasksets=tasksets)
             active_taskset_index.value = None
         return closure
-
+    
     def delete_taskset(i: int):
         def closure():
             tasksets = [*root.value.tasksets[:i]] + [*root.value.tasksets[i+1:]]
@@ -50,10 +50,10 @@ def Page():
 
     # UI
     with solara.Column(align="center", style="width: 800px; margin: 0 auto !important;"):
-
+        
         # actual content
         with solara.Column(gap="30px", style="width: 800px;") as col:
-
+            
             solara.Markdown("# All Tasks", style="text-align: center; font-size: 120%;")
             for i, taskset in enumerate(root.value.tasksets):
                 with solara.Card(title=taskset.name, subtitle=f"{len(taskset.completed_tasks)}/{len(taskset.tasks) + len(taskset.completed_tasks)} completed", style=active_taskset_index.value == i and "background-color: lightgreen;" or "background-color: #ffeeee;") as card:

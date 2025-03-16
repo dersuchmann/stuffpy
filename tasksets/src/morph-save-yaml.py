@@ -14,7 +14,7 @@ OP_DIR = Path(os.environ['STUFF_OP_DIR'])
 
 def decode_task(yaml_task: Dict[str, str]) -> Task:
     name: str = yaml_task['name']
-
+    
     task = Task(
         t=TaskT.SUCHMANN_TASKSETS_TASK,
         name=name,
@@ -23,15 +23,15 @@ def decode_task(yaml_task: Dict[str, str]) -> Task:
 
 def decode_taskset(yaml_taskset: Dict[str, str]):
     name: str = yaml_taskset['name']
-
+    
     completed_tasks: List[Task] = []
     for yaml_completed_task in (yaml_taskset['completed_tasks'] or []):
         completed_tasks.append(decode_task(yaml_completed_task))
-
+    
     tasks: List[Task] = []
     for yaml_task in (yaml_taskset['tasks'] or []):
         tasks.append(decode_task(yaml_task))
-
+    
     taskset = Taskset(
         t=TasksetT.SUCHMANN_TASKSETS_TASKSET,
         name=name,
@@ -44,7 +44,7 @@ def decode_root(yaml_root: List[Dict[str, str]]):
     tasksets: List[Taskset] = []
     for yaml_taskset in (yaml_root['tasksets'] or []):
         tasksets.append(decode_taskset(yaml_taskset))
-
+    
     root = Root(
         t=RootT.SUCHMANN_TASKSETS_ROOT,
         tasksets=tasksets,

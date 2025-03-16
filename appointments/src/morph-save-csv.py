@@ -18,7 +18,7 @@ def decode_appointment(csv_appointment: Dict[str, str]) -> Appointment:
     date: str = csv_appointment['date']
     start: str = csv_appointment['start']
     end: str = csv_appointment['end']
-
+    
     appointment = Appointment(
         t=AppointmentT.SUCHMANN_APPOINTMENTS_APPOINTMENT,
         tag=tag,
@@ -56,10 +56,10 @@ def read_csv_folder(folderpath: Path) -> Root:
         files_matching_prefix = [f for f in csv_files if f.name.startswith(prefix)]
         if len(files_matching_prefix) != 1: # Do I have to check for None here?
             break
-
+        
         filepath = files_matching_prefix[0]
         categories.append(decode_category(filepath))
-
+    
     root = Root(
         t=RootT.SUCHMANN_APPOINTMENTS_ROOT,
         categories=categories,

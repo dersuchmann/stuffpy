@@ -1,5 +1,5 @@
 definitions:
-
+  
   category:
     properties:
       name:
@@ -7,7 +7,7 @@ definitions:
       items:
         elements:
           ref: appointment
-
+  
   appointment:
     properties:
       tag:
