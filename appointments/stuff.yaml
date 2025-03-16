@@ -18,4 +18,4 @@ morphs:
 
 views:
   html:
-    load: solara run "$STUFF_REPO_DIR/src/view-load-html.py"
+    load: solara run --port $(python3 "$FLAKE_ROOT/make-port.py" "suchmann.appointments.views.html:$STUFF_SOURCE_DIR") "$STUFF_REPO_DIR/src/view-load-html.py"
