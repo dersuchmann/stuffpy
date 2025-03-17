@@ -1,5 +1,6 @@
 fnvhash==0.1.0
 jtd==0.1.1
 jupyterlab==4.3.5
+mistune==3.1.2
 pyyaml==6.0.2
 solara==1.44.1

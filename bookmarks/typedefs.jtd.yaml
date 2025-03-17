@@ -1,0 +1,25 @@
+definitions:
+  
+  category:
+    properties:
+      date:
+        type: string
+      scope:
+        type: string
+      name:
+        type: string
+      items:
+        elements:
+          ref: bookmark
+  
+  bookmark:
+    properties:
+      title:
+        type: string
+      url:
+        type: string
+
+properties:
+  categories:
+    elements:
+      ref: category
