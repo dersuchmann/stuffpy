@@ -21,6 +21,7 @@ nonreactive_root: Root = read_json_file(input)
 
 @solara.component
 def Page(): 
+    solara.Title(f"{str(OP_DIR).removeprefix(str(BASE_DIR.parent))}")
     
     # Reactive variables
     root: solara.Reactive[Root] = solara.use_reactive(nonreactive_root)
