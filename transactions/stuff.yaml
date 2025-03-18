@@ -1,0 +1,18 @@
+stuff: '0.1.0'
+scope: suchmann
+name: transactions
+
+generate-typedefs:
+  args: --python-out src/typedefs
+
+validate: python3 "$STUFF_REPO_DIR/src/validate.py"
+test: python3 "$STUFF_REPO_DIR/src/test.py"
+
+morphs:
+  csv:
+    #load: python3 "$STUFF_REPO_DIR/src/morph-load-csv.py" # not implemented yet
+    save: python3 "$STUFF_REPO_DIR/src/morph-save-csv.py"
+
+views:
+  html:
+    load: solara run --port $(python3 "$FLAKE_ROOT/make-port.py" "suchmann.transactions.views.html:$STUFF_SOURCE_DIR") "$STUFF_REPO_DIR/src/view-load-html.py"

@@ -1,0 +1,27 @@
+definitions:
+  
+  account:
+    properties:
+      bank:
+        type: string
+      name:
+        type: string
+      transactions:
+        elements:
+          ref: transaction
+  
+  transaction:
+    properties:
+      date:
+        type: string
+      payee:
+        type: string
+      memo:
+        type: string
+      amount:
+        type: int32
+
+properties:
+  accounts:
+    elements:
+      ref: account
