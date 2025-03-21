@@ -1,9 +1,10 @@
 import csv
 import json
+import yaml
 from pathlib import Path
 import os
 from typing import List, Dict, Any
-from typedefs import Root, RootT, Account, AccountT, AccountI, Transaction, TransactionT, TransactionI
+from typedefs import Root, RootT, Account, AccountT, AccountI, Transaction, TransactionT, TransactionI, RootForeignMonth
 import re
 import fnvhash
 
@@ -48,7 +49,7 @@ def decode_account(i: AccountI, transactions: list[Transaction]) -> Account:
     )
     return account
 
-def read_csv_folder(folderpath: Path) -> Root:
+def read_ledger_folder(folderpath: Path) -> list[Account]:
     accounts: list[Account] = []
     account_names: dict[str, list[str]] = {}
     csv_files = sorted([f for f in folderpath.iterdir() if re.match(r'.*\.csv$', f.name, re.IGNORECASE)])
@@ -103,9 +104,72 @@ def read_csv_folder(folderpath: Path) -> Root:
                     ) for index, ct in enumerate(csv_transactions)
                 ] # correctly add multiple entries to the existing list at the front
     
+    return accounts
+
+def decode_foreign_month(yaml_foreign_month: dict[str, str | int]) -> RootForeignMonth:
+    assign: str = yaml_foreign_month['assign']
+    to: int = yaml_foreign_month['to']
+    
+    foreign_month = RootForeignMonth(
+        assign=assign,
+        to=to,
+    )
+    return foreign_month
+    
+
+def read_foreign_months(filepath: Path) -> list[RootForeignMonth]:
+    with open(filepath, 'r') as f:
+        yaml_foreign_months: list[dict[str, str | int]] = yaml.safe_load(f) or []
+        foreign_months = []
+        for yaml_foreign_month in yaml_foreign_months:
+            foreign_months.append(decode_foreign_month(yaml_foreign_month))
+        return foreign_months
+
+
+def add_path_to_leaves(month: int, yaml_data: dict[str, Any] | list[Any] | str, current_path: list[str] | None=None, result: dict[str, list[str]] | None=None):
+    if current_path is None:
+        current_path = [str(month)]
+    if result is None:
+        result = {}
+
+    if isinstance(yaml_data, dict):
+        for key, value in yaml_data.items():
+            add_path_to_leaves(month, value, current_path + [key], result)
+    elif isinstance(yaml_data, list):
+        for item in yaml_data:
+            add_path_to_leaves(month, item, current_path, result)
+    elif isinstance(yaml_data, str):
+        match = re.match(r'^[0-9A-Fa-f]{4}_[0-9A-Fa-f]{4}', yaml_data)
+        if match:
+            result[match.group(0)] = current_path
+        
+    return result
+
+
+def read_months(folderpath: Path):
+    months: dict[str, list[str]] = {}
+    for yaml_file in folderpath.glob('*.yaml'):
+        print(yaml_file.name)
+        match = re.fullmatch(r'(\d{4})\.yaml', yaml_file.name)
+        if match:
+            month = int(match.group(1))
+            with open(yaml_file, 'r') as f:
+                yaml_data = yaml.safe_load(f)
+                add_path_to_leaves(month, yaml_data, result=months)
+    return months
+
+def read_input(input: Path):
+    # input is discarded for now because we have not implemented yet 
+    # how to handle the case that OP_DIR is not SOURCE_DIR
+    accounts = read_ledger_folder(SOURCE_DIR / "ledgers")
+    foreign_months = read_foreign_months(SOURCE_DIR / "scopes" / "lovis" / "foreign_months.yaml")
+    months = read_months(SOURCE_DIR / "scopes" / "lovis" / "months")
+    
     root = Root(
         t=RootT.SUCHMANN_TRANSACTIONS_ROOT,
         accounts=accounts,
+        foreign_months=foreign_months,
+        months=months,
     )
     return root
 
@@ -116,5 +180,5 @@ def save_json_file(filepath: Path, root: Root):
 input = OP_DIR
 output = COMPILED_DIR / 'data.json'
 
-root = read_csv_folder(input)
+root = read_input(input)
 save_json_file(output, root)

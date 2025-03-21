@@ -39,3 +39,14 @@ properties:
   accounts:
     elements:
       ref: account
+  foreignMonths:
+    elements:
+      properties:
+        assign:
+          type: string
+        to:
+          type: int32
+  months:
+    values:
+      elements:
+        type: string
