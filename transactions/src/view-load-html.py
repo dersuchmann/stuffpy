@@ -36,7 +36,7 @@ def Page():
         with solara.Column(gap="0px", style="width: 800px;") as col:
             
             for i, account in enumerate(root.value.accounts):
-                solara.Markdown(f"# {account.bank}_{account.name}", style="text-align: center; margin-bottom: 30px; font-size: 120%;")
+                solara.Markdown(f"# {account.i.bank}_{account.i.name}", style="text-align: center; margin-bottom: 30px; font-size: 120%;")
                 with solara.Card(title="Transactions", style="background-color: #ffeeee;") as card:
                     for j, transaction in enumerate(account.transactions):
                             solara.Markdown(f"{transaction.date} | {transaction.amount / 100:.2f} | {transaction.payee} | {transaction.memo}")

@@ -1,17 +1,31 @@
 definitions:
   
-  account:
+  accountI:
     properties:
       bank:
         type: string
       name:
         type: string
+  
+  account:
+    properties:
+      i:
+        ref: accountI
       transactions:
         elements:
           ref: transaction
+
+  transactionI:
+    properties:
+      filename:
+        type: string
+      index:
+        type: int32
   
   transaction:
     properties:
+      i:
+        ref: transactionI
       date:
         type: string
       payee:

@@ -45,26 +45,44 @@ class AccountT(Enum):
 
 @dataclass
 class Account:
-    bank: 'str'
-    name: 'str'
+    h: 'str'
+    i: 'AccountI'
     t: 'AccountT'
     transactions: 'List[Transaction]'
 
     @classmethod
     def from_json_data(cls, data: Any) -> 'Account':
         return cls(
-            _from_json_data(str, data.get("bank")),
-            _from_json_data(str, data.get("name")),
+            _from_json_data(str, data.get("h")),
+            _from_json_data(AccountI, data.get("i")),
             _from_json_data(AccountT, data.get("t")),
             _from_json_data(List[Transaction], data.get("transactions")),
         )
 
     def to_json_data(self) -> Any:
         data: Dict[str, Any] = {}
-        data["bank"] = _to_json_data(self.bank)
-        data["name"] = _to_json_data(self.name)
+        data["h"] = _to_json_data(self.h)
+        data["i"] = _to_json_data(self.i)
         data["t"] = _to_json_data(self.t)
         data["transactions"] = _to_json_data(self.transactions)
+        return data
+
+@dataclass
+class AccountI:
+    bank: 'str'
+    name: 'str'
+
+    @classmethod
+    def from_json_data(cls, data: Any) -> 'AccountI':
+        return cls(
+            _from_json_data(str, data.get("bank")),
+            _from_json_data(str, data.get("name")),
+        )
+
+    def to_json_data(self) -> Any:
+        data: Dict[str, Any] = {}
+        data["bank"] = _to_json_data(self.bank)
+        data["name"] = _to_json_data(self.name)
         return data
 
 @dataclass
@@ -105,6 +123,8 @@ class TransactionT(Enum):
 class Transaction:
     amount: 'int'
     date: 'str'
+    h: 'str'
+    i: 'TransactionI'
     memo: 'str'
     payee: 'str'
     t: 'TransactionT'
@@ -114,6 +134,8 @@ class Transaction:
         return cls(
             _from_json_data(int, data.get("amount")),
             _from_json_data(str, data.get("date")),
+            _from_json_data(str, data.get("h")),
+            _from_json_data(TransactionI, data.get("i")),
             _from_json_data(str, data.get("memo")),
             _from_json_data(str, data.get("payee")),
             _from_json_data(TransactionT, data.get("t")),
@@ -123,9 +145,29 @@ class Transaction:
         data: Dict[str, Any] = {}
         data["amount"] = _to_json_data(self.amount)
         data["date"] = _to_json_data(self.date)
+        data["h"] = _to_json_data(self.h)
+        data["i"] = _to_json_data(self.i)
         data["memo"] = _to_json_data(self.memo)
         data["payee"] = _to_json_data(self.payee)
         data["t"] = _to_json_data(self.t)
+        return data
+
+@dataclass
+class TransactionI:
+    filename: 'str'
+    index: 'int'
+
+    @classmethod
+    def from_json_data(cls, data: Any) -> 'TransactionI':
+        return cls(
+            _from_json_data(str, data.get("filename")),
+            _from_json_data(int, data.get("index")),
+        )
+
+    def to_json_data(self) -> Any:
+        data: Dict[str, Any] = {}
+        data["filename"] = _to_json_data(self.filename)
+        data["index"] = _to_json_data(self.index)
         return data
 
 def _from_json_data(cls: Any, data: Any) -> Any:
