@@ -21,6 +21,12 @@ nonreactive_root: Root = read_json_file(input)
 
 months = [2412, 2501, 2502, 2503]
 
+def get_filter_prefix(month: int):
+    filter_year = f"20{str(month)[:2]}"
+    filter_month = f"{str(month)[2:]}"
+    filter_prefix = f"{filter_year}/{filter_month}/"
+    return filter_prefix
+
 @solara.component
 def RegisterCard(account: Account, foreign_months: list[RootForeignMonth], the_months: dict[str, list[str]]):
     
@@ -44,9 +50,7 @@ def RegisterCard(account: Account, foreign_months: list[RootForeignMonth], the_m
                 with solara.lab.Tabs(lazy=True, background_color="transparent"):
                     for month in months:
                         with solara.lab.Tab(str(month)):
-                            filter_year = f"20{str(month)[:2]}"
-                            filter_month = f"{str(month)[2:]}"
-                            filter_prefix = f"{filter_year}/{filter_month}/"
+                            filter_prefix = get_filter_prefix(month)
                             with solara.Column(style="background-color: transparent; height: 500px; overflow: auto; row-gap: 0px;"):
                                 for j, (transaction, running_sum) in enumerate(zip(sorted_transactions, running_sums)):
                                     maybe_fm = [fm for fm in foreign_months if fm.assign == transaction.h]
@@ -83,10 +87,21 @@ def Page():
             
             for i, account in enumerate(root.value.accounts):
                 solara.Markdown(f"# {account.i.bank}_{account.i.name}", style="text-align: center; margin-bottom: 30px; font-size: 120%;")
-                with solara.Card(title="Balance", style="background-color: #ffeeee; overflow: auto;") as balance_card:
+
+                with solara.Card(title="Balance", style="background-color: #ffeeee; overflow: auto; row-gap: 0px;") as balance_card:
                     current_balance = sum(transaction.amount for transaction in account.transactions)
-                    solara.Markdown(f"Current Balance: {current_balance / 100:.2f}", style="font-family: monospace;")
+                    solara.Markdown(f"Current Balance: {current_balance / 100:.2f}", style="font-family: monospace; white-space: pre;")
+                    running_sum = 0
+                    for month in months:
+                        filter_prefix = get_filter_prefix(month)
+                        month_diff = sum(transaction.amount for transaction in account.transactions if transaction.date.startswith(filter_prefix))
+                        month_plus = sum(transaction.amount for transaction in account.transactions if transaction.date.startswith(filter_prefix) and transaction.amount > 0)
+                        month_minus = sum(transaction.amount for transaction in account.transactions if transaction.date.startswith(filter_prefix) and transaction.amount < 0)
+                        running_sum += month_diff
+                        solara.Markdown(f"{month}: + {month_diff / 100:8.2f} = {running_sum / 100:8.2f} |  -{-month_minus / 100:8.2f}  +{month_plus / 100:8.2f}", style="font-family: monospace; white-space: pre;")
+
                 RegisterCard(account, root.value.foreign_months, root.value.months)
+
                 solara.Markdown("&nbsp;")
 
 
