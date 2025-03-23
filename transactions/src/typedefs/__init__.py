@@ -4,25 +4,73 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, get_args, get_origin
+from typing import Any, Dict, List, Optional, Type, Union, get_args, get_origin
 
 
 @dataclass
-class RootForeignMonth:
-    assign: 'str'
-    to: 'int'
+class RootMonth:
+    is_split: 'str'
 
     @classmethod
-    def from_json_data(cls, data: Any) -> 'RootForeignMonth':
+    def from_json_data(cls, data: Any) -> 'RootMonth':
+        variants: Dict[str, Type[RootMonth]] = {
+            "no": RootMonthNo,
+            "yes": RootMonthYes,
+        }
+
+        return variants[data["is_split"]].from_json_data(data)
+
+    def to_json_data(self) -> Any:
+        pass
+
+@dataclass
+class RootMonthNo(RootMonth):
+    path: 'List[str]'
+
+    @classmethod
+    def from_json_data(cls, data: Any) -> 'RootMonthNo':
         return cls(
-            _from_json_data(str, data.get("assign")),
-            _from_json_data(int, data.get("to")),
+            "no",
+            _from_json_data(List[str], data.get("path")),
+        )
+
+    def to_json_data(self) -> Any:
+        data = { "is_split": "no" }
+        data["path"] = _to_json_data(self.path)
+        return data
+
+@dataclass
+class RootMonthYesPath:
+    amount: 'int'
+    path: 'List[str]'
+
+    @classmethod
+    def from_json_data(cls, data: Any) -> 'RootMonthYesPath':
+        return cls(
+            _from_json_data(int, data.get("amount")),
+            _from_json_data(List[str], data.get("path")),
         )
 
     def to_json_data(self) -> Any:
         data: Dict[str, Any] = {}
-        data["assign"] = _to_json_data(self.assign)
-        data["to"] = _to_json_data(self.to)
+        data["amount"] = _to_json_data(self.amount)
+        data["path"] = _to_json_data(self.path)
+        return data
+
+@dataclass
+class RootMonthYes(RootMonth):
+    paths: 'List[RootMonthYesPath]'
+
+    @classmethod
+    def from_json_data(cls, data: Any) -> 'RootMonthYes':
+        return cls(
+            "yes",
+            _from_json_data(List[RootMonthYesPath], data.get("paths")),
+        )
+
+    def to_json_data(self) -> Any:
+        data = { "is_split": "yes" }
+        data["paths"] = _to_json_data(self.paths)
         return data
 
 class RootT(Enum):
@@ -38,8 +86,7 @@ class RootT(Enum):
 class Root:
     accounts: 'List[Account]'
     errors: 'List[str]'
-    foreign_months: 'List[RootForeignMonth]'
-    months: 'Dict[str, List[List[str]]]'
+    months: 'Dict[str, RootMonth]'
     t: 'RootT'
 
     @classmethod
@@ -47,8 +94,7 @@ class Root:
         return cls(
             _from_json_data(List[Account], data.get("accounts")),
             _from_json_data(List[str], data.get("errors")),
-            _from_json_data(List[RootForeignMonth], data.get("foreignMonths")),
-            _from_json_data(Dict[str, List[List[str]]], data.get("months")),
+            _from_json_data(Dict[str, RootMonth], data.get("months")),
             _from_json_data(RootT, data.get("t")),
         )
 
@@ -56,7 +102,6 @@ class Root:
         data: Dict[str, Any] = {}
         data["accounts"] = _to_json_data(self.accounts)
         data["errors"] = _to_json_data(self.errors)
-        data["foreignMonths"] = _to_json_data(self.foreign_months)
         data["months"] = _to_json_data(self.months)
         data["t"] = _to_json_data(self.t)
         return data

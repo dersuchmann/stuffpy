@@ -39,18 +39,25 @@ properties:
   accounts:
     elements:
       ref: account
-  foreignMonths:
-    elements:
-      properties:
-        assign:
-          type: string
-        to:
-          type: int32
   months:
     values:
-      elements:
-        elements:
-          type: string
+      discriminator: is_split
+      mapping:
+        "no":
+          properties:
+            path:
+              elements:
+                type: string
+        "yes":
+          properties:
+            paths:
+              elements:
+                properties:
+                  amount:
+                    type: int32
+                  path:
+                    elements:
+                      type: string
   errors:
     elements:
       type: string
