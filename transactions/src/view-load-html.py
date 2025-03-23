@@ -27,6 +27,7 @@ def get_filter_prefix(month: int):
     filter_prefix = f"{filter_year}/{filter_month}/"
     return filter_prefix
 
+
 @solara.component
 def RegisterCard(account: Account, foreign_months: list[RootForeignMonth], the_months: dict[str, list[str]]):
     
@@ -65,7 +66,7 @@ def RegisterCard(account: Account, foreign_months: list[RootForeignMonth], the_m
                                         #solara.HTML(tag="span", unsafe_innerHTML=f"<button onclick='javascript:alert(\"{transaction.h}\")'>{transaction.h[0:4]}<br>{transaction.h[5:9]}</button>")
                                         solara.Markdown(f"&nbsp;{running_sum / 100:9.2f}", style="font-family: monospace; white-space: pre;")
                                         solara.Markdown(f"<br>{transaction.h}<br>&nbsp;{f"##{str(actual_month)}##" if actual_month is not None else ""}", style="color: #999; font-family: monospace; white-space: pre;")
-                                        solara.Markdown(f"{transaction.date}  {transaction.payee}<br>{transaction.amount / 100:10.2f}  {transaction.memo if transaction.memo != "" else "(no memo)"}<br><strong>{" > ".join(the_months.get(transaction.h) or []) or "UNCATEGORIZED"}</strong>", style="font-family: monospace; white-space: pre;")
+                                        solara.Markdown(f"{transaction.date}  {transaction.payee}<br>{transaction.amount / 100:10.2f}  {transaction.memo if transaction.memo != "" else "(no memo)"}<br><strong>{"<br>".join(" > ".join(category_path) for category_path in the_months.get(transaction.h) or []) or "UNCATEGORIZED"}</strong>", style="font-family: monospace; white-space: pre;")
                         
 
 
@@ -85,6 +86,18 @@ def Page():
         # actual content
         with solara.Column(gap="0px", style="width: 800px; overflow: auto;") as col:
             
+            solara.Markdown("Running checks...")
+            from_categories = set(root.value.months.keys())
+            from_ledgers = set(t.h for account in root.value.accounts for t in account.transactions)
+            missing_in_ledgers = from_categories - from_ledgers
+            missing_in_categories = from_ledgers - from_categories
+            if missing_in_ledgers != set():
+                solara.Markdown(f"missing in ledgers: {missing_in_ledgers}")
+            if missing_in_categories != set():
+                solara.Markdown(f"missing in categories: {missing_in_categories}")
+            solara.Markdown("<br>".join(root.value.errors) or "no errors found")
+                
+
             for i, account in enumerate(root.value.accounts):
                 solara.Markdown(f"# {account.i.bank}_{account.i.name}", style="text-align: center; margin-bottom: 30px; font-size: 120%;")
 
@@ -94,8 +107,8 @@ def Page():
                     running_sum = 0
                     for month in months:
                         filter_prefix = get_filter_prefix(month)
-                        month_diff = sum(transaction.amount for transaction in account.transactions if transaction.date.startswith(filter_prefix))
-                        month_plus = sum(transaction.amount for transaction in account.transactions if transaction.date.startswith(filter_prefix) and transaction.amount > 0)
+                        month_diff  = sum(transaction.amount for transaction in account.transactions if transaction.date.startswith(filter_prefix))
+                        month_plus  = sum(transaction.amount for transaction in account.transactions if transaction.date.startswith(filter_prefix) and transaction.amount > 0)
                         month_minus = sum(transaction.amount for transaction in account.transactions if transaction.date.startswith(filter_prefix) and transaction.amount < 0)
                         running_sum += month_diff
                         solara.Markdown(f"{month}: + {month_diff / 100:8.2f} = {running_sum / 100:8.2f} |  -{-month_minus / 100:8.2f}  +{month_plus / 100:8.2f}", style="font-family: monospace; white-space: pre;")

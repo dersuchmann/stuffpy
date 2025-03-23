@@ -126,28 +126,70 @@ def read_foreign_months(filepath: Path) -> list[RootForeignMonth]:
         return foreign_months
 
 
-def add_path_to_leaves(month: int, yaml_data: dict[str, Any] | list[Any] | str, current_path: list[str] | None=None, result: dict[str, list[str]] | None=None):
+def locate_and_check_leaves(accounts: list[Account], month: int, yaml_data: dict[str, Any] | list[Any] | str, current_path: list[str] | None=None, paths_result: dict[str, list[list[str]]] | None=None, splits_result: dict[str, int] | None=None, errors: list[str] | None=None):
     if current_path is None:
         current_path = [str(month)]
-    if result is None:
-        result = {}
+    if paths_result is None:
+        paths_result = {}
+    if splits_result is None:
+        splits_result = {}
+    if errors is None:
+        errors = []
 
     if isinstance(yaml_data, dict):
         for key, value in yaml_data.items():
-            add_path_to_leaves(month, value, current_path + [key], result)
+            locate_and_check_leaves(accounts, month, value, current_path + [key], paths_result, splits_result, errors)
     elif isinstance(yaml_data, list):
         for item in yaml_data:
-            add_path_to_leaves(month, item, current_path, result)
+            locate_and_check_leaves(accounts, month, item, current_path, paths_result, splits_result, errors)
     elif isinstance(yaml_data, str):
-        match = re.match(r'^[0-9A-Fa-f]{4}_[0-9A-Fa-f]{4}', yaml_data)
+        hash_expression = fr'[0-9A-Fa-f]{{4}}_[0-9A-Fa-f]{{4}}'
+        verify_separator = fr'=|\||\.\.'
+        nonempty_verify_column = fr'(?:.(?!{verify_separator}))*.'
+        empty_verify_column = fr'(?={verify_separator})'
+        first_verify_column = fr'=({empty_verify_column}|{nonempty_verify_column})'
+        other_verify_column = fr'\|({empty_verify_column}|{nonempty_verify_column})'
+        verify_expression = fr'(?:{first_verify_column})?(?:{other_verify_column})?(?:{other_verify_column})?'
+        split_expression = fr'(?:\.\.(.*))?'
+        match = re.match(fr'^({hash_expression}){verify_expression}{split_expression}', yaml_data)
         if match:
-            result[match.group(0)] = current_path
+            hash, amount, date, account, split = [match.group(i+1) for i in range(5)]
+            amount = None if amount is None or amount == "" else re.match(r'^(-?\d+)\.(\d\d)$', amount)
+            amount = None if amount is None or not amount else int(amount.group(1) + amount.group(2))
+            date   = None if date   is None or date   == "" else date
+            split  = None if split  is None or split  == "" else re.match(r'^(-?\d+)\.(\d\d)$', split )
+            split  = None if split  is None or not split  else int(split .group(1) + split .group(2))
+            if amount is not None or date is not None or account is not None:
+                maybe_transaction = [(a, t) for a in accounts for t in a.transactions if t.h == hash]
+                if len(maybe_transaction) == 0:
+                    errors.append(f"{hash}: cannot check because it is missing in ledgers")
+                else:
+                    a, t = maybe_transaction[0] # TODO what if multiple results, i.e. hash collision?
+                    if amount is not None and amount != t.amount:
+                        errors.append(f"{hash}: amount is {t.amount} in ledger and {amount} in check")
+                    if date is not None and date != t.date:
+                        errors.append(f"{hash}: date is {t.date} in ledger and {date} in check")
+                    if account is not None and account != f"{a.i.bank}_{a.i.name}":
+                        errors.append(f"{hash}: in ledger of '{a.i.bank}_{a.i.name}' but '{account}' in check")
+            if hash in paths_result:
+                paths_result[hash].append(current_path)
+            else:
+                paths_result[hash] = [current_path]
+            if split is not None:
+                if hash in splits_result:
+                    splits_result[hash] += split
+                else:
+                    splits_result[hash] = split
+        else:
+            print(f"invalid: {yaml_data}")
         
-    return result
+    return paths_result, splits_result, errors
 
 
-def read_months(folderpath: Path):
-    months: dict[str, list[str]] = {}
+def read_months(accounts: list[Account], folderpath: Path):
+    months: dict[str, list[list[str]]] = {}
+    splits_result: dict[str, int] = {}
+    errors: list[str] = []
     for yaml_file in folderpath.glob('*.yaml'):
         print(yaml_file.name)
         match = re.fullmatch(r'(\d{4})\.yaml', yaml_file.name)
@@ -155,21 +197,30 @@ def read_months(folderpath: Path):
             month = int(match.group(1))
             with open(yaml_file, 'r') as f:
                 yaml_data = yaml.safe_load(f)
-                add_path_to_leaves(month, yaml_data, result=months)
-    return months
+                locate_and_check_leaves(accounts, month, yaml_data, paths_result=months, splits_result=splits_result, errors=errors)
+    for hash in splits_result.keys():
+        maybe_transaction = [(a, t) for a in accounts for t in a.transactions if t.h == hash]
+        if len(maybe_transaction) == 0:
+            errors.append(f"{hash}: cannot check because it is missing in ledgers")
+        else:
+            a, t = maybe_transaction[0] # TODO what if multiple results, i.e. hash collision?
+            if splits_result[hash] != t.amount:
+                errors.append(f"{hash}: amount is {t.amount} in ledger and splits add up to {splits_result[hash]}")
+    return months, errors
 
 def read_input(input: Path):
     # input is discarded for now because we have not implemented yet 
     # how to handle the case that OP_DIR is not SOURCE_DIR
     accounts = read_ledger_folder(SOURCE_DIR / "ledgers")
     foreign_months = read_foreign_months(SOURCE_DIR / "scopes" / "lovis" / "foreign_months.yaml")
-    months = read_months(SOURCE_DIR / "scopes" / "lovis" / "months")
+    months, errors = read_months(accounts, SOURCE_DIR / "scopes" / "lovis" / "months")
     
     root = Root(
         t=RootT.SUCHMANN_TRANSACTIONS_ROOT,
         accounts=accounts,
         foreign_months=foreign_months,
         months=months,
+        errors=errors,
     )
     return root
 

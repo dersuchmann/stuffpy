@@ -49,4 +49,8 @@ properties:
   months:
     values:
       elements:
-        type: string
+        elements:
+          type: string
+  errors:
+    elements:
+      type: string

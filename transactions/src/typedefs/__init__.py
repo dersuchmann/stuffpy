@@ -37,22 +37,25 @@ class RootT(Enum):
 @dataclass
 class Root:
     accounts: 'List[Account]'
+    errors: 'List[str]'
     foreign_months: 'List[RootForeignMonth]'
-    months: 'Dict[str, List[str]]'
+    months: 'Dict[str, List[List[str]]]'
     t: 'RootT'
 
     @classmethod
     def from_json_data(cls, data: Any) -> 'Root':
         return cls(
             _from_json_data(List[Account], data.get("accounts")),
+            _from_json_data(List[str], data.get("errors")),
             _from_json_data(List[RootForeignMonth], data.get("foreignMonths")),
-            _from_json_data(Dict[str, List[str]], data.get("months")),
+            _from_json_data(Dict[str, List[List[str]]], data.get("months")),
             _from_json_data(RootT, data.get("t")),
         )
 
     def to_json_data(self) -> Any:
         data: Dict[str, Any] = {}
         data["accounts"] = _to_json_data(self.accounts)
+        data["errors"] = _to_json_data(self.errors)
         data["foreignMonths"] = _to_json_data(self.foreign_months)
         data["months"] = _to_json_data(self.months)
         data["t"] = _to_json_data(self.t)
