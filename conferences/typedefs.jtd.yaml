@@ -1,0 +1,136 @@
+definitions:
+
+  roomI:
+    properties:
+      venue:
+        type: string
+      name:
+        type: string
+        
+  room:
+    properties:
+      i:
+        ref: roomI
+        
+  personI:
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      disambiguator:
+        type: string
+  
+  person:
+    properties:
+      i:
+        ref: personI
+  
+  eventI:
+    properties:
+      sessionH:
+        type: string
+      title:
+        type: string
+  
+  event:
+    properties:
+      i:
+        ref: eventI
+      order:
+        type: int32
+      personHs:
+        elements:
+          type: string
+      url:
+        type: string
+
+  sessionI:
+    properties:
+      # TODO this is not unique !!! fix later !!!
+      name: 
+        type: string
+  
+  session:
+    properties:
+      i:
+        ref: sessionI
+      roomH:
+        type: string
+      date:
+        type: string
+      start:
+        type: string
+      end:
+        type: string
+      events:
+        elements:
+          ref: event
+  
+  conferenceI:
+    properties:
+      name: 
+        type: string
+      year:
+        type: int32
+  
+  conference:
+    properties:
+      i:
+        ref: conferenceI
+      location:
+        type: string
+      rooms:
+        elements:
+          ref: room
+      persons:
+        elements:
+          ref: person
+      sessions:
+        elements:
+          ref: session
+      sv_data:
+        ref: sv_data
+
+  sv_data:
+    discriminator: am_i_sv
+    mapping:
+      "no":
+        properties: {}
+      "yes":
+        properties:
+          my_sv_jobs:
+            elements:
+              ref: sv_job
+  
+  sv_job:
+    discriminator: type
+    mapping:
+      "session":
+        properties:
+          sessionH:
+            type: string
+          note:
+            type: string
+      "registration":
+        properties:
+          date:
+            type: string
+          start:
+            type: string
+          end:
+            type: string
+      "quick_response":
+        properties:
+          date:
+            type: string
+          start:
+            type: string
+          end:
+            type: string
+
+
+properties:
+  conferences:
+    elements:
+      ref: conference

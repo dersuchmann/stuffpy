@@ -1,0 +1,14 @@
+stuff: '0.1.0'
+scope: suchmann
+name: conferences
+
+generate-typedefs:
+  args: --python-out src/typedefs
+
+validate: python3 "$STUFF_REPO_DIR/src/validate.py"
+test: python3 "$STUFF_REPO_DIR/src/test.py"
+
+morphs:
+  yaml:
+    #load: python3 "$STUFF_REPO_DIR/src/morph-load-yaml.py" # not implemented yet
+    save: python3 "$STUFF_REPO_DIR/src/morph-save-yaml.py"
