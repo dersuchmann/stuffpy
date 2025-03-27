@@ -1,0 +1,25 @@
+definitions:
+
+  entryI:
+    properties:
+      key:
+        type: string
+  
+  entry:
+    properties:
+      i:
+        ref: entryI
+      entry_type:
+        type: string
+      fields:
+        elements:
+          properties:
+            key:
+              type: string
+            value:
+              {}
+
+properties:
+  entries:
+    elements:
+      ref: entry

@@ -1,3 +1,4 @@
+bibtexparser==2.0.0b8
 fnvhash==0.1.0
 jtd==0.1.1
 jupyterlab==4.3.5
