@@ -138,20 +138,20 @@ class Event:
 
 @dataclass
 class EventI:
-    session_h: 'str'
-    title: 'str'
+    name: 'str'
+    session_ah: 'str'
 
     @classmethod
     def from_json_data(cls, data: Any) -> 'EventI':
         return cls(
-            _from_json_data(str, data.get("sessionH")),
-            _from_json_data(str, data.get("title")),
+            _from_json_data(str, data.get("name")),
+            _from_json_data(str, data.get("sessionAH")),
         )
 
     def to_json_data(self) -> Any:
         data: Dict[str, Any] = {}
-        data["sessionH"] = _to_json_data(self.session_h)
-        data["title"] = _to_json_data(self.title)
+        data["name"] = _to_json_data(self.name)
+        data["sessionAH"] = _to_json_data(self.session_ah)
         return data
 
 @dataclass
@@ -267,21 +267,32 @@ class Room:
 
 @dataclass
 class RoomI:
+    conference_ah: 'str'
     name: 'str'
-    venue: 'str'
 
     @classmethod
     def from_json_data(cls, data: Any) -> 'RoomI':
         return cls(
+            _from_json_data(str, data.get("conferenceAH")),
             _from_json_data(str, data.get("name")),
-            _from_json_data(str, data.get("venue")),
         )
 
     def to_json_data(self) -> Any:
         data: Dict[str, Any] = {}
+        data["conferenceAH"] = _to_json_data(self.conference_ah)
         data["name"] = _to_json_data(self.name)
-        data["venue"] = _to_json_data(self.venue)
         return data
+
+class SessionStatus(Enum):
+    MISSED = "missed"
+    PARTLY_SEEN = "partly seen"
+    SEEN = "seen"
+    @classmethod
+    def from_json_data(cls, data: Any) -> 'SessionStatus':
+        return cls(data)
+
+    def to_json_data(self) -> Any:
+        return self.value
 
 class SessionT(Enum):
     SUCHMANN_CONFERENCES_SESSION = "suchmann.conferences.session"
@@ -301,6 +312,7 @@ class Session:
     i: 'SessionI'
     room_h: 'str'
     start: 'str'
+    status: 'SessionStatus'
     t: 'SessionT'
 
     @classmethod
@@ -313,6 +325,7 @@ class Session:
             _from_json_data(SessionI, data.get("i")),
             _from_json_data(str, data.get("roomH")),
             _from_json_data(str, data.get("start")),
+            _from_json_data(SessionStatus, data.get("status")),
             _from_json_data(SessionT, data.get("t")),
         )
 
@@ -325,21 +338,25 @@ class Session:
         data["i"] = _to_json_data(self.i)
         data["roomH"] = _to_json_data(self.room_h)
         data["start"] = _to_json_data(self.start)
+        data["status"] = _to_json_data(self.status)
         data["t"] = _to_json_data(self.t)
         return data
 
 @dataclass
 class SessionI:
+    conference_ah: 'str'
     name: 'str'
 
     @classmethod
     def from_json_data(cls, data: Any) -> 'SessionI':
         return cls(
+            _from_json_data(str, data.get("conferenceAH")),
             _from_json_data(str, data.get("name")),
         )
 
     def to_json_data(self) -> Any:
         data: Dict[str, Any] = {}
+        data["conferenceAH"] = _to_json_data(self.conference_ah)
         data["name"] = _to_json_data(self.name)
         return data
 

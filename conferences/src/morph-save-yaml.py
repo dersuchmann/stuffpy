@@ -1,6 +1,8 @@
 import csv
 import json
 import yaml
+from yamlcore import CoreLoader
+from yamlcore import CoreDumper
 from pathlib import Path
 import os
 from typing import List, Dict, Any
@@ -22,15 +24,15 @@ COMPILED_DIR = Path(os.environ['STUFF_COMPILED_DIR'])
 OP_DIR = Path(os.environ['STUFF_OP_DIR'])
 
 
-def decode_room(yaml_room: Dict[str, Any]):
-    venue: str = yaml_room['venue']
+def decode_room(yaml_room: Dict[str, Any], /, *, conference_ah: str):
     name: str = yaml_room['name']
-    i = typedefs.RoomI(venue=venue, name=name)
+    i = typedefs.RoomI(conference_ah=conference_ah, name=name)
+    h = stuff_hash(i)
     
     room = typedefs.Room(
         t=typedefs.RoomT.SUCHMANN_CONFERENCES_ROOM,
         i=i,
-        h=stuff_hash(i),
+        h=h,
     )
     return room
 
@@ -47,10 +49,10 @@ def decode_person(yaml_person: Dict[str, Any]):
     )
     return person
 
-def decode_event(yaml_event: Dict[str, Any]):
-    session_h: str = yaml_event['sessionH']
-    title: str = yaml_event['title']
-    i = typedefs.EventI(session_h=session_h, title=title)
+def decode_event(yaml_event: Dict[str, Any], /, *, session_ah: str):
+    name: str = yaml_event['name']
+    i = typedefs.EventI(session_ah=session_ah, name=name)
+    h = stuff_hash(i)
     
     order: int = yaml_event['order']
     person_hs: list[str] = yaml_event['personHs']
@@ -59,33 +61,36 @@ def decode_event(yaml_event: Dict[str, Any]):
     event = typedefs.Event(
         t=typedefs.EventT.SUCHMANN_CONFERENCES_EVENT,
         i=i,
-        h=stuff_hash(i),
+        h=h,
         order=order,
         person_hs=person_hs,
         url=url,
     )
     return event
 
-def decode_session(yaml_session: Dict[str, Any]):
+def decode_session(yaml_session: Dict[str, Any], conference_ah: str):
     name: str = yaml_session['name']
-    i = typedefs.SessionI(name=name)
+    i = typedefs.SessionI(conference_ah=conference_ah, name=name)
+    h = stuff_hash(i)
     
     room_h: str = yaml_session['roomH']
     date: str = yaml_session['date']
     start: str = yaml_session['start']
     end: str = yaml_session['end']
+    status = typedefs.SessionStatus.from_json_data(yaml_session['status'])
     events: list[typedefs.Event] = []
     for yaml_event in yaml_session['events']:
-        events.append(decode_event(yaml_event))
+        events.append(decode_event(yaml_event, session_ah=h))
     
     session = typedefs.Session(
         t=typedefs.SessionT.SUCHMANN_CONFERENCES_SESSION,
         i=i,
-        h=stuff_hash(i),
+        h=h,
         room_h=room_h,
         date=date,
         start=start,
         end=end,
+        status=status,
         events=events,
     )
     return session
@@ -123,23 +128,24 @@ def decode_conference(yaml_conference: Dict[str, Any]):
     name: str = yaml_conference['name']
     year: int = yaml_conference['year']
     i = typedefs.ConferenceI(name, year)
+    h = stuff_hash(i)
     
     location: str = yaml_conference['location']
     rooms: list[typedefs.Room] = []
     for yaml_room in yaml_conference['rooms']:
-        rooms.append(decode_room(yaml_room))
+        rooms.append(decode_room(yaml_room, conference_ah=h))
     persons: list[typedefs.Person] = []
     for yaml_person in yaml_conference['persons']:
         persons.append(decode_person(yaml_person))
     sessions: list[typedefs.Session] = []
     for yaml_session in yaml_conference['sessions']:
-        sessions.append(decode_session(yaml_session))
+        sessions.append(decode_session(yaml_session, conference_ah=h))
     sv_data = decode_sv_data(yaml_conference['sv_data'])
     
     conference = typedefs.Conference(
         t=typedefs.ConferenceT.SUCHMANN_CONFERENCES_CONFERENCE,
         i=i,
-        h=stuff_hash(i),
+        h=h,
         location=location,
         rooms=rooms,
         persons=persons,
@@ -162,7 +168,7 @@ def decode_root(yaml_root: Dict[str, Any]):
 def read_yaml_file(filepath: Path) -> Root:
     if filepath.exists():
         with open(filepath, 'r') as f:
-            yaml_root: List[Dict[str, str]] = yaml.safe_load(f) or []
+            yaml_root: List[Dict[str, str]] = yaml.load(f, Loader=CoreLoader) or []
             root = decode_root(yaml_root)
     return root
 

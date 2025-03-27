@@ -4,3 +4,4 @@ jupyterlab==4.3.5
 mistune==3.1.2
 pyyaml==6.0.2
 solara==1.44.1
+yamlcore==0.0.4

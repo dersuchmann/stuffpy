@@ -2,7 +2,7 @@ definitions:
 
   roomI:
     properties:
-      venue:
+      conferenceAH:
         type: string
       name:
         type: string
@@ -28,9 +28,9 @@ definitions:
   
   eventI:
     properties:
-      sessionH:
+      sessionAH:
         type: string
-      title:
+      name:
         type: string
   
   event:
@@ -47,7 +47,8 @@ definitions:
 
   sessionI:
     properties:
-      # TODO this is not unique !!! fix later !!!
+      conferenceAH:
+        type: string
       name: 
         type: string
   
@@ -63,6 +64,11 @@ definitions:
         type: string
       end:
         type: string
+      status:
+        enum:
+          - seen
+          - partly seen
+          - missed
       events:
         elements:
           ref: event
